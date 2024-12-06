@@ -106,6 +106,7 @@ export interface CircomCircuitConfig {
   zkey: string;
   vkey: string;
   beacon: string;
+  include: string[];
 }
 
 export interface CircomUserConfig {
@@ -113,6 +114,7 @@ export interface CircomUserConfig {
   outputBasePath?: string;
   ptau: string;
   circuits: CircomCircuitUserConfig[];
+  include?: string[];
 }
 
 export interface CircomConfig {
@@ -121,6 +123,7 @@ export interface CircomConfig {
   ptau: string;
   ptauDownload: string | undefined;
   circuits: CircomCircuitConfig[];
+  include: string[];
 }
 
 extendEnvironment((hre) => {
@@ -175,7 +178,7 @@ export const TASK_CIRCOM_TEMPLATE = "circom:template";
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
   const { root } = config.paths;
 
-  const { inputBasePath, outputBasePath, ptau, circuits = [] } = userConfig.circom ?? {};
+  const { inputBasePath, outputBasePath, ptau, circuits = [], include = [] } = userConfig.circom ?? {};
 
   if (circuits.length === 0) {
     throw new HardhatPluginError(
@@ -241,6 +244,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
       r1cs: r1csPath,
       zkey: zkeyPath,
       vkey: vkeyPath,
+      include,
     });
   }
 });
@@ -410,8 +414,9 @@ async function circom2({ circuit, debug }: { circuit: CircomCircuitConfig; debug
     };
   });
 
+  const includes = (circuit.include || []).flatMap(path => ["-l", path])
   const circom = new CircomRunner({
-    args: [circuit.circuit, "--r1cs", "--wat", "--wasm", "--sym", "-o", dir],
+    args: [circuit.circuit, ...includes, "--r1cs", "--wat", "--wasm", "--sym", "-o", dir],
     env: {},
     // Preopen from the root because we use absolute paths
     preopens: {

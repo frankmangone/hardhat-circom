@@ -104,6 +104,8 @@ module.exports = {
     inputBasePath: "./mycircuits/",
     // (optional) Base path for files being output, defaults to `./circuits/`
     outputBasePath: "./client/",
+    // (optional) Include paths for circuits using libraries (adds `-l` flags to the circom call)
+    include: ["/path/to/include"],
     // (required) The final ptau file, relative to inputBasePath, from a Phase 1 ceremony
     ptau: "pot15_final.ptau",
     // (required) Each object in this array refers to a separate circuit
